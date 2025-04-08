@@ -1,0 +1,555 @@
+#Funnel-Calculator-Wiith-Costs
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Recruitment Funnel & Cost Calculator</title>
+    <!-- Include Vue.js -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.7.14/dist/vue.js"></script>
+    <!-- Include D3.js (required for funnel charts) -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <!-- Include D3-Funnel library -->
+    <script src="https://cdn.jsdelivr.net/npm/d3-funnel@2.0.0/dist/d3-funnel.min.js"></script>
+
+    <style>
+        body {
+            font-family: sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            background-color: #f4f7f6;
+        }
+        #app {
+            display: flex;
+            width: 95%;
+            max-width: 1300px; /* Increased max-width */
+            gap: 30px;
+            background-color: #fff;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .inputs-section {
+            flex: 1;
+            min-width: 300px; /* Increased min-width */
+            display: flex;
+            flex-direction: column;
+            gap: 10px; /* Adjusted gap */
+        }
+        .chart-section {
+            flex: 2;
+            min-width: 450px; /* Increased min-width */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .metrics-section {
+             margin-top: 20px;
+             display: flex;
+             width: 100%;
+             gap: 20px;
+             justify-content: space-around;
+             flex-wrap: wrap; /* Allow wrapping on smaller screens */
+        }
+        .conversions, .calculated-metrics {
+            flex: 1; /* Allow them to share space */
+            min-width: 200px; /* Minimum width before wrapping */
+            background-color: #fdfdfd;
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #eee;
+            font-size: 0.9em;
+            color: #444;
+            box-sizing: border-box; /* Include padding/border in width */
+        }
+        .conversions h3, .calculated-metrics h3 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            text-align: center;
+            color: #333;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 8px;
+        }
+        .conversions ul, .calculated-metrics ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .conversions li, .calculated-metrics li {
+            padding: 6px 0;
+            display: flex;
+            justify-content: space-between;
+        }
+        .conversions li:not(:last-child),
+        .calculated-metrics li:not(:last-child) {
+             border-bottom: 1px dashed #eee;
+        }
+        .conversions span, .calculated-metrics span {
+            font-weight: bold;
+            color: #007bff;
+            margin-left: 10px; /* Add space between label and value */
+        }
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 8px; /* Adjusted margin */
+        }
+        .input-group label {
+            margin-bottom: 4px;
+            font-size: 0.9em;
+            color: #555;
+            font-weight: bold;
+        }
+        .input-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .input-row input[type="number"],
+        .input-row input[type="text"] { /* For salary input */
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1em;
+        }
+        .percentage-input {
+            width: 10px;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 0.9em;
+            color: #007bff;
+            text-align: right;
+        }
+        .percentage-label {
+            font-size: 0.9em;
+            color: #666;
+            margin-left: -5px;
+        }
+        h1, h2 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 25px;
+        }
+        h2 {
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+        #chart {
+            width: 100%;
+            height: 450px; /* Adjust as needed */
+        }
+
+        @media (max-width: 900px) { /* Adjusted breakpoint */
+            #app {
+                flex-direction: column;
+            }
+            .inputs-section, .chart-section {
+                width: 100%;
+                min-width: unset;
+            }
+            .metrics-section {
+                flex-direction: column; /* Stack metrics vertically */
+                align-items: center;
+            }
+             .conversions, .calculated-metrics {
+                width: 90%; /* Take more width when stacked */
+                max-width: 400px; /* Limit max width */
+            }
+        }
+         @media (max-width: 480px) {
+            .input-row {
+                flex-wrap: wrap; /* Allow percentage input to wrap */
+            }
+            .percentage-input {
+                width: 20px;
+            }
+             h1 { font-size: 1.5em; }
+             h2 { font-size: 1.2em; }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Recruitment Funnel & Cost Visualizer</h1>
+
+    <div id="app">
+        <div class="inputs-section">
+            <h2>Enter Funnel & Cost Data</h2>
+
+            <!-- Cost Inputs -->
+             <div class="input-group">
+                <label for="minPerInterview">Minutes per Interview Stage</label>
+                <input type="number" id="minPerInterview" v-model.number="minPerInterview" min="1">
+            </div>
+             <div class="input-group">
+                <label for="avgSalary">Avg Interviewer Salary (Annual)</label>
+                 <div class="input-row">
+                     <span>$</span>
+                     <input type="number" id="avgSalary" v-model.number="avgSalary" min="0" style="margin-left: -5px;">
+                 </div>
+            </div>
+
+            <hr style="margin: 15px 0; border-color: #eee;">
+
+            <!-- Funnel Stage Inputs -->
+            <!-- First stage -->
+            <div class="input-group">
+                <label :for="'sourced'">{{ funnelStages.sourced.label }}</label>
+                <div class="input-row">
+                    <input type="number" id="sourced" v-model.number="funnelStages.sourced.value" min="0">
+                </div>
+            </div>
+
+            <!-- Other stages -->
+            <div v-for="(stage, key, index) in stagesExceptFirst" :key="key" class="input-group">
+                <label :for="key">{{ stage.label }}</label>
+                <div class="input-row">
+                    <input type="number" :id="key" v-model.number="funnelStages[key].value" min="0">
+                    <input
+                        type="number"
+                        class="percentage-input"
+                        v-model.number="conversionPercentages[key]"
+                        min="0"
+                        max="100"
+                        step="0.1"
+                        @change="updateValueFromPercentage(key)"
+                        @focus="isUpdatingFromPercentage = true"
+                        @blur="isUpdatingFromPercentage = false"
+                    >
+                    <span class="percentage-label">%</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="chart-section">
+            <h2>Funnel Metrics Chart</h2>
+            <div id="chart">
+                <!-- Chart will be rendered here -->
+            </div>
+            <div class="metrics-section">
+                <div class="conversions">
+                    <h3>Conversion Ratios</h3>
+                    <ul>
+                        <li v-for="conv in conversionRates" :key="conv.from">
+                            {{ conv.from }} to {{ conv.to }}: <span>{{ conv.rate }}%</span>
+                        </li>
+                    </ul>
+                </div>
+                <div class="calculated-metrics">
+                    <h3>Cost & Efficiency Metrics</h3>
+                    <ul>
+                        <li>Total Interview Cost: <span>${{ totalCost.toFixed(2) }}</span></li>
+                        <li>Cost Per Hire: <span>${{ costPerHire.toFixed(2) }}</span></li>
+                        <li>Total Interview Hours: <span>{{ totalInterviewHours.toFixed(2) }}</span></li>
+                        <li>Interview Hours per Hire: <span>{{ hoursInterviewPerHire.toFixed(2) }}</span></li>
+                        <li>Interviews per Hire: <span>{{ interviewsPerHire.toFixed(2) }}</span></li>
+                        <li>Sourced to Hired %: <span>{{ percentCandidatesHired.toFixed(2) }}%</span></li>
+                        <li>Sourced needed per Hire: <span>{{ sourcedToHiredRatio.toFixed(2) }}</span></li>
+                        <li>Contacted needed per Hire: <span>{{ contactedPerHireRatio.toFixed(2) }}</span></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        new Vue({
+            el: '#app',
+            data: {
+                // --- Cost Inputs ---
+                minPerInterview: 60,
+                avgSalary: 180000,
+                workDaysPerYear: 260, // Standard assumption
+                workHoursPerDay: 8,   // Standard assumption
+
+                // --- Funnel Stages ---
+                funnelStages: {
+                    sourced: { label: 'Sourced / Identified', value: 500 },
+                    contacted: { label: 'Contacted', value: 350 },
+                    responded: { label: 'Responded', value: 150 },
+                    interested: { label: 'Interested / Qualified', value: 100 },
+                    submitted: { label: 'Submitted to HM', value: 75 },
+                    firstInterview: { label: '1st Interview', value: 50 },
+                    secondInterview: { label: '2nd Interview', value: 25 },
+                    finalInterview: { label: 'Final Interview', value: 10 },
+                    offer: { label: 'Offer Extended', value: 5 },
+                    hired: { label: 'Hired (Offer Accepted)', value: 3 }
+                },
+                conversionPercentages: {
+                    contacted: 70,
+                    responded: 42.9,
+                    interested: 66.7,
+                    submitted: 75,
+                    firstInterview: 66.7,
+                    secondInterview: 50,
+                    finalInterview: 40,
+                    offer: 50,
+                    hired: 60
+                },
+                isUpdatingFromPercentage: false,
+                 chartInstance: null // To hold the D3Funnel instance
+            },
+            computed: {
+                // --- Helper Computeds ---
+                stageKeys() {
+                    return Object.keys(this.funnelStages);
+                },
+                stagesExceptFirst() {
+                    const { sourced, ...rest } = this.funnelStages;
+                    return rest;
+                },
+                hires() {
+                    return Math.max(0, this.funnelStages.hired.value || 0);
+                },
+                 sourced() {
+                    return Math.max(0, this.funnelStages.sourced.value || 0);
+                },
+                 contacted() {
+                    return Math.max(0, this.funnelStages.contacted.value || 0);
+                },
+
+                 // --- Core Calculation Computeds ---
+                 interviewerCostPerMinute() {
+                    if (this.workDaysPerYear <= 0 || this.workHoursPerDay <= 0) return 0;
+                    const dailySalary = this.avgSalary / this.workDaysPerYear;
+                    const hourlySalary = dailySalary / this.workHoursPerDay;
+                    return hourlySalary / 60;
+                 },
+
+                totalInterviews() {
+                    // Summing only the designated interview stages for cost calculation
+                    return (this.funnelStages.firstInterview.value || 0) +
+                           (this.funnelStages.secondInterview.value || 0) +
+                           (this.funnelStages.finalInterview.value || 0);
+                },
+
+                totalInterviewMinutes() {
+                    return this.totalInterviews * this.minPerInterview;
+                },
+
+                totalCost() {
+                    return this.totalInterviewMinutes * this.interviewerCostPerMinute;
+                },
+
+                costPerHire() {
+                    return this.hires > 0 ? (this.totalCost / this.hires) : 0;
+                },
+
+                 
+                totalInterviewHours() {
+                    return this.totalInterviewMinutes / 60;
+                },
+
+                hoursInterviewPerHire() {
+                     return this.hires > 0 ? (this.totalInterviewHours / this.hires) : 0;
+                },
+
+                interviewsPerHire() {
+                     return this.hires > 0 ? (this.totalInterviews / this.hires) : 0;
+                },
+
+                percentCandidatesHired() {
+                    // Overall Sourced to Hired %
+                     return this.sourced > 0 ? (this.hires / this.sourced) * 100 : 0;
+                },
+
+                sourcedToHiredRatio() {
+                     return this.hires > 0 ? (this.sourced / this.hires) : 0; // Display 0 if no hires
+                },
+
+                contactedPerHireRatio() {
+                     return this.hires > 0 ? (this.contacted / this.hires) : 0; // Display 0 if no hires
+                },
+
+                 // --- Chart & Conversion Ratio Computeds (Mostly unchanged) ---
+                conversionRates() {
+                    const rates = [];
+                    const stageKeys = this.stageKeys;
+
+                    for (let i = 0; i < stageKeys.length - 1; i++) {
+                        const currentKey = stageKeys[i];
+                        const nextKey = stageKeys[i + 1];
+
+                        const currentValue = Math.max(0, this.funnelStages[currentKey].value || 0);
+                        const nextValue = Math.max(0, this.funnelStages[nextKey].value || 0);
+
+                        let rate = '0.0'; // Default rate
+                        if (currentValue > 0) {
+                            rate = ((nextValue / currentValue) * 100).toFixed(1);
+                        } else if (nextValue > 0 && i > 0) { // Check if not the first stage
+                            // If previous is 0 but current has value (manual input), show special case
+                             rate = 'N/A (Prev=0)';
+                        }
+
+
+                        rates.push({
+                            from: this.funnelStages[currentKey].label,
+                            to: this.funnelStages[nextKey].label,
+                            rate: rate
+                        });
+                    }
+                    // Add Overall Sourced to Hired
+                     if (this.sourced > 0) {
+                        rates.push({
+                            from: this.funnelStages.sourced.label,
+                            to: this.funnelStages.hired.label,
+                            rate: ((this.hires / this.sourced) * 100).toFixed(1) // Use direct calc
+                        });
+                    } else {
+                         rates.push({
+                            from: this.funnelStages.sourced.label,
+                            to: this.funnelStages.hired.label,
+                            rate: '0.0'
+                        });
+                    }
+                    return rates;
+                },
+
+                funnelData() {
+                     // Filter out stages with 0 value *before* they become 0 to avoid chart errors
+                    return this.stageKeys
+                        .map(key => ({
+                            label: this.funnelStages[key].label,
+                            value: this.funnelStages[key].value || 0, // Ensure value is at least 0
+                            formattedValue: (this.funnelStages[key].value || 0).toString()
+                        }))
+                        .filter(item => item.value > 0 || this.stageKeys.indexOf(this.stageKeys.find(k => this.funnelStages[k].label === item.label)) === 0); // Keep Sourced even if 0
+                },
+            },
+            methods: {
+                renderChart() {
+                    const colors = [ /* Colors remain the same */
+                         '#5AA9E6', '#7FC8A9', '#D4B483', '#E4A9A8', '#9F86C0',
+                         '#6C7B95', '#678D58', '#E05D5D', '#F2C078', '#6C757D'
+                    ];
+                     const chartContainer = document.getElementById('chart');
+                     chartContainer.innerHTML = ''; // Clear previous chart
+
+                     // Only render if there's data, specifically if 'Sourced' has a value > 0
+                    if (this.funnelData.length > 0 && this.funnelData[0].value > 0) {
+                         this.chartInstance = new D3Funnel('#chart'); // Create new instance
+                         this.chartInstance.draw(this.funnelData, {
+                            chart: {
+                                animate: 250, // Slightly faster animation
+                                curve: { enabled: true, height: 15 },
+                                bottomPinch: 1 // Add a slight pinch effect if desired
+                            },
+                            block: {
+                                dynamicHeight: true,
+                                minHeight: 20,
+                                fill: { type: 'gradient', scale: colors.slice(0, this.funnelData.length) }, // Use dynamic color scale
+                                highlight: true
+                            },
+                            label: {
+                                format: '{l}: {f}', // Label: Value
+                                fill: '#333', // Darker label text
+                                fontSize: '12px'
+                             },
+                            tooltip: { enabled: true, format: '{l}: {f}' }, // Tooltip: Label: Value
+                            events: { /* click event remains the same */
+                                click: { block: function(d) { console.log("Clicked:", d.label.raw, d.value.raw); } }
+                            }
+                        });
+                     } else {
+                         // Optional: Display a message if there's no data to chart
+                         chartContainer.innerHTML = '<p style="text-align:center; color:#888; margin-top: 50px;">Enter a value for "Sourced" to generate the funnel chart.</p>';
+                         this.chartInstance = null; // No active chart instance
+                     }
+                },
+
+                 updateValueFromPercentage(stageKey) {
+                    // No need for the flag if using @focus/@blur
+                    // if (this.isUpdatingFromPercentage) return;
+                    // this.isUpdatingFromPercentage = true;
+
+                    const stageIndex = this.stageKeys.indexOf(stageKey);
+                    if (stageIndex > 0) {
+                        const prevStageKey = this.stageKeys[stageIndex - 1];
+                        const prevValue = this.funnelStages[prevStageKey].value;
+                        const percentage = this.conversionPercentages[stageKey];
+
+                         // Check if percentage is valid
+                        if (typeof percentage === 'number' && percentage >= 0 && percentage <= 100) {
+                             const newValue = Math.round((prevValue * percentage) / 100);
+                             this.funnelStages[stageKey].value = newValue;
+                             this.updateSubsequentStages(stageIndex + 1); // Update stages below
+                         } else {
+                             // Reset percentage if invalid input? Or just ignore?
+                             // Maybe fetch the actual current conversion if input is bad
+                             this.updatePercentagesFromValues(); // Re-calculate based on current numbers
+                         }
+                    }
+                    // this.isUpdatingFromPercentage = false; // Not needed with focus/blur approach
+                },
+
+                updateSubsequentStages(startIndex) {
+                    for (let i = startIndex; i < this.stageKeys.length; i++) {
+                        const currentKey = this.stageKeys[i];
+                        const prevKey = this.stageKeys[i - 1];
+                        const prevValue = this.funnelStages[prevKey].value;
+                        const percentage = this.conversionPercentages[currentKey];
+
+                        if (typeof percentage === 'number' && percentage >= 0 && percentage <= 100) {
+                             const newValue = Math.round((prevValue * percentage) / 100);
+                             this.funnelStages[currentKey].value = newValue;
+                         } else {
+                            // If a percentage down the chain is invalid, stop recalculating?
+                            // Or recalculate the percentage based on existing numbers? Let's recalculate.
+                             this.updatePercentagesFromValues();
+                             break; // Stop propagating the potentially bad percentage change
+                         }
+                    }
+                },
+
+                updatePercentagesFromValues() {
+                    if (this.isUpdatingFromPercentage) return; // Prevent recursion if user is typing %
+
+                    const stageKeys = this.stageKeys;
+                    for (let i = 1; i < stageKeys.length; i++) {
+                        const currentKey = stageKeys[i];
+                        const prevKey = stageKeys[i - 1];
+                        const currentValue = this.funnelStages[currentKey].value || 0;
+                        const prevValue = this.funnelStages[prevKey].value || 0;
+
+                        if (prevValue > 0) {
+                            const percentage = (currentValue / prevValue) * 100;
+                            // Use Vue.set for reactivity if percentages weren't predefined, but they are, so direct assignment is fine
+                            this.conversionPercentages[currentKey] = parseFloat(percentage.toFixed(1));
+                        } else {
+                            this.conversionPercentages[currentKey] = 0;
+                        }
+                    }
+                }
+            },
+            mounted() {
+                // Initialize percentages based on initial values on load
+                this.updatePercentagesFromValues();
+                this.renderChart();
+            },
+            watch: {
+                 // Watch the raw funnelStages values (triggered by number inputs)
+                 'funnelStages': {
+                     handler: function(newVal, oldVal) {
+                         // Check if the change was programmatic (from percentage update)
+                         if (!this.isUpdatingFromPercentage) {
+                             this.updatePercentagesFromValues();
+                         }
+                         // Always re-render chart on data change
+                         this.renderChart();
+                     },
+                     deep: true
+                 },
+                // Also watch cost inputs to update metrics immediately
+                minPerInterview() { this.$forceUpdate(); }, // Force update needed if computed relies on it indirectly
+                avgSalary() { this.$forceUpdate(); }       // Force update needed if computed relies on it indirectly
+                 // Watching conversionPercentages is handled by the @change event on the inputs
+            }
+        });
+    </script>
+</body>
+</html>
