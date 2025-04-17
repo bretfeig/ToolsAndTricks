@@ -32,7 +32,12 @@ Welcome to my personal repository of code! Here, you'll find tools and projects 
   - More detailed insights and calculations to optimize the recruitment process.
 
 ---
-
+### 3. `Capacity-Model.html` - Recruiter Capacity Model WIP
+- **Description**: First itteration of a tool to help in forecasting recruiting capacity by taking into account various inputs
+- **Features**:
+  - Takes input for key variables like passthrough rates, time to hire
+  - Considers additional inputs like length of screens, admin time tied to each interview etc
+  - 
 Feel free to explore these tools, but remember: **you use them at your own risk**. If you have any questions or suggestions, feel free to reach out!
 
 --- 
