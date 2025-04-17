@@ -1,0 +1,559 @@
+--- START OF FILE Recruiter Resourcing Model.html ---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recruiter Resourcing Model v2.0</title> <!-- Updated Title -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        /* Same CSS as the previous version, with minor tweaks if needed */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            color: #343a40;
+            padding: 20px;
+        }
+        h1, h2, h3 {
+            color: #0056b3;
+        }
+        .container-fluid {
+            max-width: 1400px;
+        }
+        .card {
+            border: none;
+            box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.05);
+            margin-bottom: 15px;
+        }
+        .card-header {
+            background-color: #007bff;
+            color: white;
+            font-weight: bold;
+            border-bottom: none;
+            padding: 10px 15px;
+            border-radius: 0.3rem 0.3rem 0 0;
+            display: flex;
+            align-items: center;
+        }
+        .card-header-icon {
+            margin-right: 10px;
+        }
+        .card-body {
+            padding: 15px;
+        }
+        .input-group-custom {
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+        .input-group-custom label {
+            width: 200px;
+            margin-right: 10px;
+            font-size: 0.9rem;
+            color: #495057;
+            text-align: right;
+        }
+        /* Input styling */
+        .input-group-custom input,
+        .table-inputs input,
+        .table-inputs select,
+        #req_load_table input /* Style for req load inputs */
+         {
+            width: 90px;
+            font-size: 0.9rem;
+            padding: 0.3rem 0.6rem;
+            border-radius: 0.25rem;
+            border: 1px solid #ced4da;
+            background-color: #ffffcc; /* Yellow background for inputs */
+        }
+         /* Ensure req load table inputs take cell width */
+        #req_load_table input {
+            width: 100%;
+             height: 100%;
+             border: none;
+             text-align: center;
+             padding: 0.3rem;
+        }
+
+        .input-group-custom input:focus,
+        .table-inputs input:focus,
+        .table-inputs select:focus,
+        #req_load_table input:focus
+         {
+            border-color: #007bff;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+            background-color: #fff; /* White on focus */
+            outline: none;
+        }
+        .calculated-field {
+            font-weight: bold;
+            color: #0056b3;
+            min-width: 70px;
+            text-align: right;
+            padding-right: 10px;
+        }
+        .results-card .card-header {
+            background-color: #28a745;
+        }
+        .results-table th, .results-table td {
+            font-size: 0.85rem;
+            padding: 0.5rem;
+            text-align: left;
+            vertical-align: middle;
+        }
+        .results-table th {
+            background-color: #e9ecef;
+            border-color: #dee2e6;
+        }
+        .results-table tbody tr.total-row {
+            font-weight: bold;
+            background-color: #f8f9fa;
+        }
+        .recruiters-needed-text {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #007bff;
+            background-color: #e9ecef;
+            padding: 10px;
+            border-radius: 0.25rem;
+            margin-top: 15px;
+            text-align: center;
+        }
+        .table-inputs th {
+            font-size: 0.8rem;
+            text-align: center;
+            background-color: #dee2e6;
+            padding: 0.4rem;
+            white-space: normal; /* Allow header text wrapping */
+        }
+        .table-inputs td {
+            padding: 0;
+        }
+        .table-inputs input, .table-inputs select {
+           width: 100%;
+           height: 100%;
+           border: none;
+           text-align: center;
+        }
+        .table-inputs select {
+           padding: 0.3rem 0;
+        }
+        .output-cell {
+            text-align: right;
+            padding: 0.3rem 0.6rem !important;
+            font-size: 0.9rem;
+            background-color: #e9ecef;
+        }
+        .notes-cell {
+            font-size: 0.8rem;
+            color: #6c757d;
+            text-align: left;
+            padding-left: 10px !important;
+        }
+        .small-note {
+            font-size: 0.75rem;
+            color: #6c757d;
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .input-group-custom label { width: 180px; }
+            .container-fluid { max-width: 1140px; }
+            .table-inputs th { font-size: 0.75rem; }
+        }
+        @media (max-width: 992px) {
+            .input-group-custom label { width: 150px; font-size: 0.85rem;}
+            .input-group-custom input, .input-group-custom select { width: 80px; font-size: 0.85rem;}
+        }
+        @media (max-width: 768px) {
+            .input-group-custom { flex-direction: column; align-items: flex-start; }
+            .input-group-custom label { text-align: left; margin-bottom: 3px; width: 100%;}
+            .input-group-custom input, .input-group-custom select, #req_load_table input { width: 100%; margin-bottom: 8px;}
+            .card-body { padding: 10px; }
+            h1 { font-size: 1.5rem; }
+            h3 { font-size: 1.1rem; }
+            .table-inputs th { font-size: 0.7rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <h1 class="text-center mb-3">Recruiter Resourcing Model</h1>
+        <div class="row">
+            <!-- Inputs Section -->
+            <div class="col-lg-8">
+                <!-- Organization Req Load -->
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-briefcase card-header-icon"></i> Organization's Req Load
+                    </div>
+                    <div class="card-body">
+                        <table id="req_load_table" class="table table-bordered results-table">
+                            <thead>
+                                <tr>
+                                    <th>Type</th>
+                                    <th>Number (Input)</th>
+                                    <th>Hours (Calculated)</th>
+                                    <th>Notes</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Extreme</td>
+                                    <td><input type="number" id="req_extreme" value="3" step="1" min="0"></td>
+                                    <td id="load_hours_extreme" class="output-cell">0</td>
+                                    <td class="notes-cell">Executive level, "extremely" hard to fill reqs</td>
+                                </tr>
+                                <tr>
+                                    <td>Hard</td>
+                                    <td><input type="number" id="req_hard" value="2" step="1" min="0"></td>
+                                    <td id="load_hours_hard" class="output-cell">0</td>
+                                    <td class="notes-cell">Senior level hires - principle engineers, directors</td>
+                                </tr>
+                                <tr>
+                                    <td>Medium</td>
+                                    <td><input type="number" id="req_medium" value="4" step="1" min="0"></td>
+                                    <td id="load_hours_medium" class="output-cell">0</td>
+                                    <td class="notes-cell">Quota bearing sales reps, junior engineers</td>
+                                </tr>
+                                <tr>
+                                    <td>Easy</td>
+                                    <td><input type="number" id="req_easy" value="5" step="1" min="0"></td>
+                                    <td id="load_hours_easy" class="output-cell">0</td>
+                                    <td class="notes-cell">Easiest to fill - customer success, junior marketers, etc</td>
+                                </tr>
+                                <tr class="total-row">
+                                    <td colspan="2">Total Recruiter hours needed</td>
+                                    <td id="total_hours" class="output-cell">0</td>
+                                    <td></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                 <!-- Inputs & Variables Table -->
+                 <div class="card">
+                    <div class="card-header">
+                         <i class="fas fa-cogs card-header-icon"></i> Inputs & Variables
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-bordered table-inputs">
+                           <thead>
+                               <tr>
+                                   <th>Leveling</th>
+                                   <th>Dedicated Sourcer?</th>
+                                   <th># Screens / Interview</th>
+                                   <th># Interviews / Hire</th>
+                                   <th>AVG Time to Fill (Months)</th>
+                                   <th>Sourcing time / day (Hours)</th>
+                                   <th>Monthly Sourcing (Calc Hrs)</th>
+                                   <th>Monthly Screening (Calc Hrs)</th>
+                                   <th>Monthly Admin (Calc Hrs)</th>
+                                   <th>Total hours / Req / Mo (Calc)</th>
+                               </tr>
+                           </thead>
+                           <tbody>
+                               <!-- Extreme -->
+                               <tr>
+                                   <td>Extreme</td>
+                                   <td>
+                                       <select id="dedicated_extreme">
+                                           <option value="No" selected>No</option>
+                                           <option value="Yes">Yes</option>
+                                       </select>
+                                   </td>
+                                   <td><input type="number" id="screens_interview_extreme" value="6.0" step="0.1" min="0"></td>
+                                   <td><input type="number" id="interview_hire_extreme" value="7.0" step="0.1" min="0"></td>
+                                   <td><input type="number" id="time_to_fill_extreme" value="4.0" step="0.1" min="0.1"></td>
+                                   <td><input type="number" id="sourcing_time_extreme" value="2.0" step="0.1" min="0"></td>
+                                   <td class="output-cell" id="calc_sourcing_extreme">0</td>
+                                   <td class="output-cell" id="calc_screening_extreme">0</td>
+                                   <td class="output-cell" id="calc_admin_extreme">0</td>
+                                   <td class="output-cell" id="calc_total_req_extreme">0</td>
+                               </tr>
+                               <!-- Hard -->
+                               <tr>
+                                   <td>Hard</td>
+                                   <td>
+                                       <select id="dedicated_hard">
+                                           <option value="No">No</option>
+                                           <option value="Yes" selected>Yes</option>
+                                       </select>
+                                   </td>
+                                   <td><input type="number" id="screens_interview_hard" value="5.0" step="0.1" min="0"></td>
+                                   <td><input type="number" id="interview_hire_hard" value="5.0" step="0.1" min="0"></td>
+                                   <td><input type="number" id="time_to_fill_hard" value="2.5" step="0.1" min="0.1"></td>
+                                   <td><input type="number" id="sourcing_time_hard" value="1.5" step="0.1" min="0"></td>
+                                   <td class="output-cell" id="calc_sourcing_hard">0</td>
+                                   <td class="output-cell" id="calc_screening_hard">0</td>
+                                   <td class="output-cell" id="calc_admin_hard">0</td>
+                                   <td class="output-cell" id="calc_total_req_hard">0</td>
+                               </tr>
+                               <!-- Medium -->
+                               <tr>
+                                   <td>Medium</td>
+                                   <td>
+                                       <select id="dedicated_medium">
+                                           <option value="No">No</option>
+                                           <option value="Yes" selected>Yes</option>
+                                       </select>
+                                   </td>
+                                   <td><input type="number" id="screens_interview_medium" value="4.0" step="0.1" min="0"></td>
+                                   <td><input type="number" id="interview_hire_medium" value="7.0" step="0.1" min="0"></td>
+                                   <td><input type="number" id="time_to_fill_medium" value="1.5" step="0.1" min="0.1"></td>
+                                   <td><input type="number" id="sourcing_time_medium" value="1.0" step="0.1" min="0"></td>
+                                   <td class="output-cell" id="calc_sourcing_medium">0</td>
+                                   <td class="output-cell" id="calc_screening_medium">0</td>
+                                   <td class="output-cell" id="calc_admin_medium">0</td>
+                                   <td class="output-cell" id="calc_total_req_medium">0</td>
+                               </tr>
+                               <!-- Easy -->
+                               <tr>
+                                   <td>Easy</td>
+                                   <td>
+                                       <select id="dedicated_easy">
+                                           <option value="No">No</option>
+                                           <option value="Yes" selected>Yes</option>
+                                       </select>
+                                   </td>
+                                   <td><input type="number" id="screens_interview_easy" value="3.0" step="0.1" min="0"></td>
+                                   <td><input type="number" id="interview_hire_easy" value="10.0" step="0.1" min="0"></td>
+                                   <td><input type="number" id="time_to_fill_easy" value="1.0" step="0.1" min="0.1"></td>
+                                   <td><input type="number" id="sourcing_time_easy" value="0.5" step="0.1" min="0"></td>
+                                   <td class="output-cell" id="calc_sourcing_easy">0</td>
+                                   <td class="output-cell" id="calc_screening_easy">0</td>
+                                   <td class="output-cell" id="calc_admin_easy">0</td>
+                                   <td class="output-cell" id="calc_total_req_easy">0</td>
+                               </tr>
+                           </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results & Constants Section -->
+            <div class="col-lg-4">
+                <!-- Constants -->
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-calculator card-header-icon"></i> Constants
+                    </div>
+                    <div class="card-body">
+                         <div class="input-group-custom">
+                            <label for="T1">T1: Admin min/screen</label>
+                            <input type="number" id="T1" value="8" step="1" min="0">
+                        </div>
+                        <div class="input-group-custom">
+                            <label for="T2">T2: Admin min/interview</label>
+                            <input type="number" id="T2" value="30" step="1" min="0">
+                        </div>
+                         <div class="input-group-custom">
+                            <label for="U1">U1: Workdays/month</label>
+                            <input type="number" id="U1" value="20" step="1" min="0">
+                        </div>
+                         <div class="input-group-custom">
+                            <label for="minutes_per_screen">Minutes per Screen</label>
+                            <input type="number" id="minutes_per_screen" value="60" step="1" min="0">
+                        </div>
+                        <div class="input-group-custom">
+                            <label for="minutes_per_interview">Minutes per Interview</label>
+                            <input type="number" id="minutes_per_interview" value="60" step="1" min="0">
+                        </div>
+                         <hr>
+                         <!-- Conversion Metrics -->
+                         <div class="input-group-custom">
+                             <label for="P1">P1: % move 1st to 2nd</label>
+                             <input type="number" id="P1" value="0.8" step="0.01" min="0.01" max="1">
+                         </div>
+                         <div class="input-group-custom">
+                             <label for="P2">P2: % move 2nd to 3rd</label>
+                             <input type="number" id="P2" value="0.7" step="0.01" min="0.01" max="1">
+                         </div>
+                         <div class="input-group-custom">
+                             <label for="P3">P3: % move 3rd to Final</label>
+                             <input type="number" id="P3" value="0.6" step="0.01" min="0.01" max="1">
+                         </div>
+                         <div class="input-group-custom">
+                             <label for="P4">P4: % progress final to offer</label>
+                             <input type="number" id="P4" value="0.5" step="0.01" min="0.01" max="1">
+                         </div>
+                        <hr>
+                         <div class="input-group-custom">
+                            <label for="V1">V1: Hours/month/recruiter</label>
+                            <input type="number" id="V1" value="160" step="1" min="0"> <!-- Updated default -->
+                        </div>
+                         <small class="text-muted d-block">Note: V0 (Hrs/Week) implicitly used in V1 (V1=V0*4)</small>
+                    </div>
+                </div>
+
+                <!-- Results -->
+                <div class="card results-card">
+                    <div class="card-header">
+                        <i class="fas fa-chart-bar mr-2"></i> Results
+                    </div>
+                    <div class="card-body">
+                         <!-- Chart Removed for simplicity, focus on tables -->
+                        <!-- <canvas id="hoursChart"></canvas> -->
+                        <div class="recruiters-needed-text mt-3">Recruiters Needed: <span id="recruiters_needed">0</span></div>
+                        <small class="text-muted d-block text-center mt-2">(Total Hours / Hours per Recruiter)</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- External Scripts -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> --> <!-- Chart.js removed -->
+
+    <!-- Application Logic -->
+    <script>
+        // Get Input Value Utility
+        function getVal(id) {
+            const element = document.getElementById(id);
+            // For conversion rates (P1-P4), prevent value of 0 to avoid division by zero
+            if (['P1', 'P2', 'P3', 'P4'].includes(id)) {
+                const value = parseFloat(element.value) || 0.01; // Default to small non-zero
+                return Math.max(0.01, Math.min(value, 1)); // Clamp between 0.01 and 1
+            }
+            return parseFloat(element.value) || 0;
+        }
+        function getSelectVal(id) {
+            return document.getElementById(id).value;
+        }
+
+        // Update calculations and visuals
+        function updateResults() {
+            const levels = ['extreme', 'hard', 'medium', 'easy'];
+            let totalRecruiterHours = 0;
+
+            // Get Global Constants
+            const T1 = getVal('T1');
+            const T2 = getVal('T2');
+            const U1 = getVal('U1');
+            const V1 = getVal('V1');
+            const minutesPerScreen = getVal('minutes_per_screen');
+            const minutesPerInterview = getVal('minutes_per_interview'); // Keep for potential future use
+            const P1 = getVal('P1');
+            const P2 = getVal('P2');
+            const P3 = getVal('P3');
+            const P4 = getVal('P4');
+
+            // Calculate Denominators for conversion (handle potential zero division)
+            const denom1 = P1 * P2 * P3 * P4;
+            const denom2 = P2 * P3 * P4;
+            const denom3 = P3 * P4;
+            const denom4 = P4;
+
+            levels.forEach(level => {
+                // Get Level Inputs
+                const req = getVal(`req_${level}`);
+                const dedicated = getSelectVal(`dedicated_${level}`);
+                const screensInterview = getVal(`screens_interview_${level}`); // C20 equivalent
+                const interviewHire = getVal(`interview_hire_${level}`); // D20 equivalent
+                const timeToFill = getVal(`time_to_fill_${level}`);     // F20 equivalent
+                const sourcingTime = getVal(`sourcing_time_${level}`);   // H20 equivalent
+
+                // --- Start Calculations based on latest Excel formulas ---
+
+                // Monthly Sourcing Hours (Column I equivalent)
+                const monthlySourcingHours = dedicated === 'No' ? sourcingTime * U1 : 0;
+
+                // Calculate intermediate values for Screening and Admin (per Hire)
+                let applicantsScreenedPerOffer = 0;
+                let interviewsConductedPerOffer = 0;
+                let screeningHoursPerHire = 0;
+                let adminHoursPerHire = 0;
+
+                if (denom1 > 0 && denom2 > 0 && denom3 > 0 && denom4 > 0) {
+                    // This matches the formula in Excel cell K20's first part: (C20 / (J10*J11*J12*J13))
+                    // It represents the number of candidates screened per offer generated *based on screens/interview ratio*.
+                    applicantsScreenedPerOffer = screensInterview / denom1; // NOTE: Excel uses C20 (Screens/Interview), not D20 (Interview/Hire) here. Replicating Excel.
+
+                    // This matches the formula in Excel cell L20's second part multiplier for T2
+                    interviewsConductedPerOffer = (1 / denom1) + (1 / denom2) + (1 / denom3) + (1 / denom4);
+
+                    // Screening Hours per Hire (Column K equivalent)
+                    screeningHoursPerHire = applicantsScreenedPerOffer * (minutesPerScreen / 60);
+
+                    // Admin Hours per Hire (Column L equivalent)
+                    adminHoursPerHire = (T1 * applicantsScreenedPerOffer + T2 * interviewsConductedPerOffer) / 60;
+                }
+
+                // Monthly Screening Hours (K20 / F20)
+                const monthlyScreeningHours = (timeToFill > 0) ? screeningHoursPerHire / timeToFill : 0;
+
+                // Monthly Admin Hours (L20 / F20)
+                const monthlyAdminHours = (timeToFill > 0) ? adminHoursPerHire / timeToFill : 0;
+
+                // Total Hours per Req per Month (Column M equivalent)
+                const totalHoursPerReq = monthlySourcingHours + monthlyScreeningHours + monthlyAdminHours;
+
+                // --- End Calculations ---
+
+                // Calculate Total Hours for this Level (Column C in Req Load)
+                const totalHoursForLevel = req * totalHoursPerReq;
+
+                // Update Calculated Cells in Input Table
+                document.getElementById(`calc_sourcing_${level}`).textContent = monthlySourcingHours.toFixed(1);
+                document.getElementById(`calc_screening_${level}`).textContent = monthlyScreeningHours.toFixed(1);
+                document.getElementById(`calc_admin_${level}`).textContent = monthlyAdminHours.toFixed(1);
+                document.getElementById(`calc_total_req_${level}`).textContent = totalHoursPerReq.toFixed(2);
+
+                // Update Req Load Table
+                document.getElementById(`load_hours_${level}`).textContent = totalHoursForLevel.toFixed(1);
+
+                // Accumulate total hours
+                totalRecruiterHours += totalHoursForLevel;
+            });
+
+            // Update Totals and Final Result
+            document.getElementById('total_hours').textContent = totalRecruiterHours.toFixed(1);
+            const recruitersNeeded = (V1 > 0) ? totalRecruiterHours / V1 : 0;
+            document.getElementById('recruiters_needed').textContent = recruitersNeeded.toFixed(1); // Match Excel C11 output (2.7)
+
+        }
+
+        // Add event listeners to all inputs
+        document.querySelectorAll('input, select').forEach(element => {
+            element.addEventListener('input', updateResults);
+            element.addEventListener('change', updateResults);
+        });
+
+        // Initial calculation on page load
+        updateResults();
+    </script>
+
+<script type="text/javascript">
+        // GridKat specific script - Keep as is
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                var filteredData = jsonData.filter(row =>
+                    row.some(cell => cell !== '' && cell !== null && cell !== undefined)
+                );
+                var csv = XLSX.utils.aoa_to_sheet(filteredData);
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script>
+</body>
+</html>
+--- END OF FILE Recruiter Resourcing Model.html ---
